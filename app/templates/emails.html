@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Patient reminders{% endblock %}
+{% block content %}
+<p><a href="/scans/{{ scan.id }}">← Worklist</a></p>
+<h1>Patient reminders</h1>
+<p class="muted">Reminders go out {{ ctx.practice.reminder_days.replace(',', ', ') }} days before a visit, only while something is still open. They name the lab work needed, never the medication, and leave from your own mailbox.</p>
+
+{% if ctx.can('send') and drafts %}
+<form method="post" action="/scans/{{ scan.id }}/send" class="actions">
+  <input type="hidden" name="csrf_token" value="{{ ctx.csrf }}">
+  {% if DRY_RUN %}
+    <button class="primary" type="submit">Run test send ({{ drafts | length }})</button>
+    <span class="muted small">Test mode: emails are recorded, not sent.</span>
+  {% elif not mailbox_ready %}
+    <span class="error">Set up your practice mailbox in Settings before sending.</span>
+  {% else %}
+    <button class="primary" type="submit">Send {{ drafts | length }} reminders</button>
+  {% endif %}
+</form>
+{% elif not drafts %}<div class="card"><p>No reminders are due right now.</p></div>{% endif %}
+
+<section class="card">
+  <h2>Not being emailed</h2>
+  <ul class="plain">
+    <li>{{ held.call_instead }} have a visit today, so they're phone calls, not emails</li>
+    <li>{{ held.already_sent }} already got this reminder</li>
+    <li>{{ held.reached_by_phone }} reached by phone in the last 3 days</li>
+    <li>{{ held.opted_out }} asked not to be emailed</li>
+    <li>{{ held.no_email }} have no email address (they're on the call list)</li>
+    <li>{{ held.not_yet }} aren't due yet</li>
+    <li>{{ held.nothing_for_patient }} have nothing left for the patient to do</li>
+  </ul>
+</section>
+
+{% for d in drafts %}
+<details class="card email">
+  <summary><strong>{{ d.to }}</strong> · {{ d.subject }} <span class="muted small">({{ d.stage }}-day reminder)</span></summary>
+  <pre>{{ d.body }}</pre>
+</details>
+{% endfor %}
+{% endblock %}

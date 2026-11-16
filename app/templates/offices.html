@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Requests to offices{% endblock %}
+{% block content %}
+<p><a href="/scans/{{ scan.id }}">← Worklist</a></p>
+<h1>Requests to offices</h1>
+<p class="muted">All open renewals and lab orders, combined into one request per office instead of one call per patient. These name the patient and drug, so they go provider to provider from your own mailbox, or by fax.</p>
+
+{% set emailable = groups | selectattr('email') | list %}
+{% if ctx.can('send') and emailable %}
+<form method="post" action="/scans/{{ scan.id }}/offices/send-all" class="actions">
+  <input type="hidden" name="csrf_token" value="{{ ctx.csrf }}">
+  <button class="primary" type="submit">{{ 'Run test send' if DRY_RUN else 'Email' }} to {{ emailable | length }} offices</button>
+  {% if DRY_RUN %}<span class="muted small">Test mode: recorded, not sent.</span>{% endif %}
+</form>
+{% endif %}
+
+{% if not groups %}<div class="card"><p>Nothing is waiting to go to an office.</p></div>{% endif %}
+{% for g in groups %}
+<section class="card">
+  <h2>{{ g.name }}</h2>
+  <p class="small">{{ g.rx | length }} renewals · {{ g.labs | length }} lab orders ·
+    {% if g.email %}{{ g.email }}{% elif g.contact %}Fax/phone {{ g.contact }}{% else %}<span class="tag warnt">No contact in export</span>{% endif %}</p>
+  <div class="btns">
+    {% if ctx.can('export') %}<a class="button mini" href="/scans/{{ scan.id }}/offices/{{ g.gid }}/print">Fax sheet</a>{% endif %}
+    {% if ctx.can('work') %}
+    <form method="post" action="/scans/{{ scan.id }}/offices/{{ g.gid }}/mark-sent" class="inline">
+      <input type="hidden" name="csrf_token" value="{{ ctx.csrf }}">
+      <button class="mini" type="submit">Mark as sent by fax or phone</button>
+    </form>
+    {% endif %}
+  </div>
+  <details class="email"><summary>Preview</summary><pre>{{ previews[g.gid].body }}</pre></details>
+</section>
+{% endfor %}
+{% endblock %}

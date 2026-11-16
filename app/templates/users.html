@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<h1>Users</h1>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+{% if managed %}
+<div class="banner info">Your practice is on <strong>Managed access</strong>. Previsit support adds people and changes roles for you. Send a request below.</div>
+{% endif %}
+{% if invite_link %}
+<div class="card notice">
+  <p><strong>Invite created for {{ invite_email }}.</strong> Send them this link. It works once and expires in 72 hours.</p>
+  <input class="copy" readonly value="{{ invite_link }}">
+</div>
+{% endif %}
+
+<section class="card">
+  <table>
+    <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Two-step</th><th>Last sign-in</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+    {% for u in users %}
+      {% set editable = not managed and u.id != ctx.user.id and u.role != 'owner' and (ctx.user.role == 'owner' or u.role != 'admin') %}
+      <tr>
+        <td>{{ u.name }}</td>
+        <td>{{ u.email }}</td>
+        <td>
+          {% if editable %}
+          <form method="post" action="/users/{{ u.id }}/update" id="u{{ u.id }}">
+            <input type="hidden" name="csrf_token" value="{{ ctx.csrf }}">
+            <select name="role">{% for r in assignable %}<option value="{{ r }}" {% if r == u.role %}selected{% endif %}>{{ ROLE_LABELS[r] }}</option>{% endfor %}</select>
+          </form>
+          {% else %}{{ ROLE_LABELS[u.role] }}{% endif %}
+        </td>
+        <td>{% if u.mfa_enabled %}<span class="tag ok">On</span>{% else %}<span class="tag warnt">Off</span>{% endif %}</td>
+        <td>{{ u.last_login_at|lt(ctx.practice, '%b %d %H:%M') if u.last_login_at else '—' }}</td>
+        <td>
+          {% if u.invite_token_hash %}<span class="muted">Invited</span>
+          {% elif u.locked_until and u.locked_until > now %}<span class="tag stale">Locked</span>
+          {% elif not u.active %}<span class="muted">Disabled</span>
+          {% else %}Active{% endif %}
+          {% if editable %}<label class="check small"><input form="u{{ u.id }}" type="checkbox" name="active" value="1" {% if u.active %}checked{% endif %}> active</label>{% endif %}
+        </td>
+        <td class="nowrap">
+          {% if editable %}
+          <button form="u{{ u.id }}" type="submit">Save</button>
+          {% if u.mfa_enabled %}
+          <form method="post" action="/users/{{ u.id }}/reset-mfa" class="inline">
+            <input type="hidden" name="csrf_token" value="{{ ctx.csrf }}">
+            <button class="link" type="submit">Reset two-step</button>
+          </form>
+          {% endif %}
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+{% if managed %}
+<section class="card">
+  <h2>Ask Previsit support for a change</h2>
+  <form method="post" action="/users/request">
+    <input type="hidden" name="csrf_token" value="{{ ctx.csrf }}">
+    <div class="row">
+      <label>What do you need?
+        <select name="kind">
+          <option value="add">Add a user</option>
+          <option value="change_role">Change a role</option>
+          <option value="remove">Remove a user</option>
+          <option value="reset_mfa">Reset two-step sign-in (lost phone)</option>
+        </select>
+      </label>
+      <label>Their work email <input type="email" name="target_email" required></label>
+      <label>Their name <input name="target_name"></label>
+      <label>Role (if adding or changing)
+        <select name="role"><option value="">—</option><option value="admin">Admin</option><option value="staff">Staff</option><option value="readonly">Read-only</option></select>
+      </label>
+    </div>
+    <label>Anything else? <input name="note" maxlength="1000"></label>
+    <button class="primary" type="submit">Send request</button>
+  </form>
+  {% if access_requests %}
+  <h2 class="spaced">Your requests</h2>
+  <table>
+    <thead><tr><th>Sent</th><th>Request</th><th>Person</th><th>Status</th><th>Reply</th></tr></thead>
+    <tbody>
+    {% for r in access_requests %}
+      <tr>
+        <td class="nowrap">{{ r.created_at|lt(ctx.practice, '%b %d %H:%M') }}</td>
+        <td>{{ {'add': 'Add', 'change_role': 'Change role', 'remove': 'Remove', 'reset_mfa': 'Reset two-step'}[r.kind] }}{% if r.role %} → {{ ROLE_LABELS[r.role] }}{% endif %}</td>
+        <td>{{ r.target_name }} {{ r.target_email }}</td>
+        <td><span class="tag st-{{ r.status }}">{{ {'open': 'Waiting', 'done': 'Done', 'declined': 'Declined'}[r.status] }}</span></td>
+        <td class="small">{{ r.reply }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</section>
+{% else %}
+<section class="card">
+  <h2>Invite someone</h2>
+  <form method="post" action="/users/invite" class="row">
+    <input type="hidden" name="csrf_token" value="{{ ctx.csrf }}">
+    <input name="name" placeholder="Name" required>
+    <input type="email" name="email" placeholder="Work email" required>
+    <select name="role">{% for r in assignable %}<option value="{{ r }}" {% if r == 'staff' %}selected{% endif %}>{{ ROLE_LABELS[r] }}</option>{% endfor %}</select>
+    <button class="primary" type="submit">Create invite</button>
+  </form>
+  <p class="muted small"><strong>Staff</strong> can upload, scan, download call lists and send emails. <strong>Read-only</strong> can view results. <strong>Admins</strong> can also edit rules and users.</p>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,94 @@
+Chart #,Medication Name,Date Written,Refills Left,DEA Schedule,Med Status,Prescribed By,Prescriber Fax,Prescriber Email
+MRN10400,Lisinopril 10 mg,2025-10-23,0,,Active,Dr. K. Osei,555-0198,
+MRN10400,Metformin 500 mg,2026-04-21,5,,Discontinued,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10400,Atorvastatin 20 mg,2026-10-08,1,,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10400,Atorvastatin 20 mg,2026-10-18,3,,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10401,Amlodipine 5 mg,2026-04-21,5,,Active,Dr. K. Osei,555-0198,
+MRN10402,Alprazolam 0.5 mg,2025-09-13,5,IV,Discontinued,Dr. K. Osei,555-0198,
+MRN10402,Alprazolam 0.5 mg,2026-10-18,3,IV,Discontinued,Dr. K. Osei,555-0198,
+MRN10402,Lithium carbonate 300 mg,2025-10-23,2,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10402,Losartan 50 mg,2025-11-12,2,,Active,Dr. K. Osei,555-0198,
+MRN10403,Warfarin 5 mg,2025-10-23,2,,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10403,Losartan 50 mg,2025-09-13,1,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10403,Losartan 50 mg,2026-10-18,3,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10404,Lithium carbonate 300 mg,2025-10-23,1,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10404,Semaglutide 0.5 mg,2025-09-13,1,,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10404,Semaglutide 0.5 mg,2026-10-18,3,,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10405,Lipitor 40 mg,2025-10-23,3,,Active,Dr. K. Osei,555-0198,
+MRN10405,Oxycodone 5 mg,2026-04-21,1,CII,Active,Dr. K. Osei,555-0198,
+MRN10405,Sertraline 50 mg,2026-07-30,5,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10405,Sertraline 50 mg,2026-10-18,3,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10406,Atorvastatin 20 mg,2025-09-13,3,,Active,Dr. K. Osei,555-0198,
+MRN10406,Atorvastatin 20 mg,2026-10-18,3,,Active,Dr. K. Osei,555-0198,
+MRN10407,Lorazepam 1 mg,2025-12-02,0,,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10407,Metformin 500 mg,2025-11-12,2,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10407,Lipitor 40 mg,2026-04-21,1,,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10408,Alprazolam 0.5 mg,2025-11-12,0,IV,Active,Dr. K. Osei,555-0198,
+MRN10408,Lipitor 40 mg,2026-04-21,1,,Active,Dr. K. Osei,555-0198,
+MRN10409,Sertraline 50 mg,2025-11-12,3,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10410,Alprazolam 0.5 mg,2026-05-21,5,IV,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10410,Alprazolam 0.5 mg,2026-10-18,3,IV,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10410,Semaglutide 0.5 mg,2026-07-30,1,,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10410,Lithium carbonate 300 mg,2026-04-21,2,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10411,Levothyroxine 50 mcg,2026-10-08,1,,Active,Dr. K. Osei,555-0198,
+MRN10411,Oxycodone 5 mg,2025-09-13,0,CII,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10411,Lorazepam 1 mg,2025-09-13,5,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10412,Amlodipine 5 mg,2025-12-02,5,,Active,Dr. K. Osei,555-0198,
+MRN10412,Oxycodone 5 mg,2026-04-21,5,CII,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10412,Lisinopril 10 mg,2025-12-02,1,,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10412,Lisinopril 10 mg,2026-10-18,3,,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10413,Semaglutide 0.5 mg,2025-12-02,3,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10413,Lithium carbonate 300 mg,2026-05-21,1,,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10413,Levothyroxine 50 mcg,2025-10-23,2,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10414,Lorazepam 1 mg,2026-07-30,2,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10415,Amlodipine 5 mg,2025-11-12,2,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10415,Alprazolam 0.5 mg,2025-10-23,2,IV,Discontinued,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10415,Losartan 50 mg,2025-12-02,5,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10415,Losartan 50 mg,2026-10-18,3,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10416,Levothyroxine 50 mcg,2025-12-02,1,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10417,Oxycodone 5 mg,2025-09-13,3,CII,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10417,Lorazepam 1 mg,2025-10-23,3,,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10417,Lisinopril 10 mg,2025-12-02,1,,Discontinued,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10418,Semaglutide 0.5 mg,2025-10-23,2,,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10419,Lisinopril 10 mg,2026-05-21,2,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10419,Lithium carbonate 300 mg,2026-04-21,0,,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10420,Lipitor 40 mg,2025-11-12,3,,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10420,Amlodipine 5 mg,2025-10-23,5,,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10420,Sertraline 50 mg,2026-10-08,5,,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10421,Metformin 500 mg,2026-04-21,2,,Active,Dr. K. Osei,555-0198,
+MRN10421,Semaglutide 0.5 mg,2026-07-30,3,,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10421,Semaglutide 0.5 mg,2026-10-18,3,,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10421,Oxycodone 5 mg,2026-04-21,3,CII,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10422,Losartan 50 mg,2026-05-21,3,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10422,Lorazepam 1 mg,2025-09-13,5,,Active,Dr. K. Osei,555-0198,
+MRN10422,Warfarin 5 mg,2026-07-30,1,,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10422,Warfarin 5 mg,2026-10-18,3,,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10423,Losartan 50 mg,2025-12-02,1,,Active,Dr. K. Osei,555-0198,
+MRN10424,Losartan 50 mg,2025-10-23,3,,Active,Dr. K. Osei,555-0198,
+MRN10424,Levothyroxine 50 mcg,2025-10-23,1,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10425,Ozempic 1 mg,2025-12-02,1,,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10426,Alprazolam 0.5 mg,2026-05-21,2,IV,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10426,Amlodipine 5 mg,2026-05-21,3,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10427,Atorvastatin 20 mg,2026-04-21,3,,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10428,Lipitor 40 mg,2026-04-21,3,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10428,Amlodipine 5 mg,2025-11-12,3,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10429,Levothyroxine 50 mcg,2026-10-08,3,,Discontinued,Dr. K. Osei,555-0198,
+MRN10430,Atorvastatin 20 mg,2026-10-08,1,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10430,Oxycodone 5 mg,2026-05-21,2,CII,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10431,Warfarin 5 mg,2025-11-12,1,,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10431,Alprazolam 0.5 mg,2025-12-02,0,IV,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10431,Lorazepam 1 mg,2025-10-23,2,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10432,Losartan 50 mg,2026-07-30,3,,Discontinued,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10432,Ozempic 1 mg,2026-04-21,1,,Active,Dr. K. Osei,555-0198,
+MRN10433,Amlodipine 5 mg,2026-05-21,0,,Active,Dr. K. Osei,555-0198,
+MRN10434,Warfarin 5 mg,2025-10-23,2,,Active,Dr. K. Osei,555-0198,
+MRN10434,Warfarin 5 mg,2026-10-18,3,,Active,Dr. K. Osei,555-0198,
+MRN10435,Alprazolam 0.5 mg,2025-09-13,2,IV,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10435,Lisinopril 10 mg,2026-10-08,3,,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10435,Lithium carbonate 300 mg,2026-10-08,0,,Active,Dr. K. Osei,555-0198,
+MRN10435,Lithium carbonate 300 mg,2026-10-18,3,,Active,Dr. K. Osei,555-0198,
+MRN10436,Warfarin 5 mg,2026-07-30,1,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10436,Metformin 500 mg,2025-12-02,3,,Active,Dr. K. Osei,555-0198,
+MRN10437,Lisinopril 10 mg,2025-10-23,0,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com
+MRN10438,Sertraline 50 mg,2025-09-13,1,,Active,"N. Brooks, NP",555-0197,brooks.office@example.com
+MRN10439,Lisinopril 10 mg,2026-04-21,2,,Active,Dr. A. Rivera,555-0199,rivera.office@example.com

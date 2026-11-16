@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% if ctx %}<meta http-equiv="refresh" content="{{ IDLE_MINUTES * 60 }};url=/logout?idle=1">{% endif %}
+  <title>{% block title %}Previsit{% endblock %} · Previsit</title>
+  <link rel="stylesheet" href="/static/style.css?v=3">
+  <link rel="icon" href="/static/favicon.svg">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/"><span class="logo">✚</span> Previsit</a>
+  {% if ctx and ctx.fully_signed_in and ctx.can('operate') %}
+  <nav><a href="/operator">Operator console</a></nav>
+  <div class="who"><a href="/account">{{ ctx.user.name }}</a> · Previsit support <a class="signout" href="/logout">Sign out</a></div>
+  {% elif ctx and ctx.fully_signed_in %}
+  <nav>
+    <a href="/">Home</a>
+    <a href="/worklist">Worklist</a>
+    <a href="/rules">Rules</a>
+    <a href="/insights">Results</a>
+    {% if ctx.can('manage_users') %}<a href="/users">Users</a>{% endif %}
+    {% if ctx.can('view_security') %}<a href="/security">Security</a>{% endif %}
+    {% if ctx.can('manage_settings') %}<a href="/settings">Settings</a>{% endif %}
+  </nav>
+  <div class="who">
+    <a href="/account">{{ ctx.user.name }}</a> · {{ ctx.practice.name }}
+    <a class="signout" href="/logout">Sign out</a>
+  </div>
+  {% elif ctx %}
+  <div class="who"><a class="signout" href="/logout">Sign out</a></div>
+  {% endif %}
+</header>
+{% if DRY_RUN and ctx %}<div class="banner test">Test mode: patient emails are recorded but not sent.</div>{% endif %}
+<main>
+  {% if msg %}<div class="notice">{{ msg }}</div>{% endif %}
+  {% block content %}{% endblock %}
+</main>
+<footer>Contains patient information. Lock your screen when you step away. Auto sign-out after {{ IDLE_MINUTES }} minutes.</footer>
+</body>
+</html>

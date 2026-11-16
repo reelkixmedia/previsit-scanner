@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Security{% endblock %}
+{% block content %}
+<h1>Security</h1>
+
+<div class="stats">
+  <div class="{{ 'ok' if chain_ok else 'bad' }}"><span class="num">{{ '✔' if chain_ok else '✖' }}</span>
+    {% if chain_ok %}Audit log intact ({{ checked }} events){% else %}Audit log altered at event {{ bad_id }}{% endif %}</div>
+  <div><span class="num">{{ users | selectattr('mfa_enabled') | list | length }}/{{ users | length }}</span>users with two-step on</div>
+  <div class="{{ 'bad' if failed > 10 else '' }}"><span class="num">{{ failed }}</span>failed sign-ins, 7 days</div>
+  <div class="{{ 'bad' if locks else '' }}"><span class="num">{{ locks }}</span>lockouts, 7 days</div>
+  <div><span class="num">{{ sessions }}</span>signed-in sessions</div>
+</div>
+
+<section class="card">
+  <h2>Data held</h2>
+  <ul class="plain">
+    <li>{{ datasets }} uploads and {{ scans }} scans, encrypted with your practice's own key</li>
+    <li>Oldest upload: {{ oldest|lt(ctx.practice, '%b %d, %Y') if oldest else 'none' }}. Deleted automatically after {{ ctx.practice.retention_days }} days</li>
+    <li>Patient emails: {% if DRY_RUN %}test mode, nothing is sent{% else %}live{% if allowlist %}, limited to {{ allowlist | length }} test addresses{% endif %}{% endif %}</li>
+    <li>Two-step sign-in {{ 'required' if ctx.practice.require_mfa else 'optional' }} · auto sign-out after {{ IDLE_MINUTES }} minutes · lockout after 5 wrong tries</li>
+  </ul>
+</section>
+
+<section class="card">
+  <h2>Activity log <a class="button small" href="/security/audit.jsonl">Download</a></h2>
+  <p class="muted small">Every sign-in, upload, scan, view, download and email is logged. The log holds record numbers only, never patient names.</p>
+  <table class="log">
+    <thead><tr><th>When</th><th>Who</th><th>What</th><th>Details</th><th>IP</th></tr></thead>
+    <tbody>
+    {% for e, d in events %}
+      <tr class="{{ 'bad' if e.action in ['login_failed','mfa_failed','account_locked','login_blocked_locked','emergency_access_reset'] else '' }}">
+        <td class="nowrap">{{ e.ts|lt(ctx.practice, '%b %d %H:%M:%S') }}</td>
+        <td>{{ names.get(e.user_id) or ('Previsit support' if d.get('by') == 'previsit_support' else '—') }}</td>
+        <td>{{ e.action.replace('_', ' ') }}</td>
+        <td class="small muted">{% for k, v in d.items() %}{{ k }}={{ v }} {% endfor %}</td>
+        <td class="small">{{ e.ip }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

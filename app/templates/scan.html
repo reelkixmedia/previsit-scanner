@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Worklist{% endblock %}
+{% macro keep() %}
+<input type="hidden" name="csrf_token" value="{{ ctx.csrf }}">
+<input type="hidden" name="group" value="{{ group }}">
+<input type="hidden" name="provider" value="{{ provider }}">
+<input type="hidden" name="show" value="{{ show }}">
+{% endmacro %}
+{% macro when(days) %}{% if days == 0 %}<span class="soon">Today</span>{% elif days == 1 %}<span class="soon">Tomorrow</span>{% elif days <= 3 %}<span class="soon">In {{ days }} days</span>{% else %}In {{ days }} days{% endif %}{% endmacro %}
+{% block content %}
+<h1>Worklist</h1>
+<p class="muted">Visits {{ summary.scan_date }} to {{ summary.window_end }} · {{ summary.patients_in_window }} patients checked · scanned {{ scan.created_at|lt(ctx.practice, '%b %d, %H:%M') }}</p>
+
+{% set c = summary.checks %}
+<ul class="checks">
+  {% if c.ids_dont_match %}<li class="bad">No patient IDs match between the appointments and medications files, so nobody could be checked. The two reports may use different ID columns.</li>{% endif %}
+  {% if c.no_meds_file %}<li class="bad">No medications file was included, so prescriptions and labs were not checked.</li>{% endif %}
+  {% if c.no_labs_file and not c.no_meds_file %}<li>No lab file was included, so lab work was not checked.</li>{% endif %}
+  {% if c.no_way_to_contact %}<li>{{ c.no_way_to_contact }} flagged patients have no phone or email in the export.</li>{% endif %}
+  {% if c.no_prescriber_contact %}<li>{{ c.no_prescriber_contact }} renewals have no prescriber phone, fax or email in the export.</li>{% endif %}
+  {% if c.future_dates %}<li>{{ c.future_dates }} prescription or lab dates are in the future. Check the export for typing errors.</li>{% endif %}
+  {% if c.schedules_inferred %}<li>{{ c.schedules_inferred }} controlled medications had a blank schedule, so the schedule was set from the drug name.</li>{% endif %}
+</ul>
+
+{% if total %}
+<p class="small muted">{{ handled }} of {{ total }} items handled</p>
+<progress value="{{ handled }}" max="{{ total }}">{{ percent }}%</progress>
+{% endif %}
+
+<div class="tabs">
+  {% for g in GROUPS %}
+  <a class="{{ g }} {{ 'on' if g == group }}" href="/scans/{{ scan.id }}?group={{ g }}&provider={{ provider|urlencode }}&show={{ show }}"><span class="num">{{ counts[g] }}</span>{{ GROUP_LABELS[g] }}</a>
+  {% endfor %}
+</div>
+
+<div class="actions">
+  {% if ctx.can('export') %}<a class="button primary" href="/scans/{{ scan.id }}/calllist.xlsx">Call list (Excel)</a>{% endif %}
+  <a class="button" href="/scans/{{ scan.id }}/offices">Requests to offices</a>
+  <a class="button" href="/scans/{{ scan.id }}/emails">Patient reminders</a>
+  <a class="button" href="/scans/{{ scan.id }}/outbox">Email log</a>
+</div>
+
+<form method="get" action="/scans/{{ scan.id }}" class="filters">
+  <input type="hidden" name="group" value="{{ group }}">
+  <select name="provider">
+    <option value="">All providers</option>
+    {% for p in providers %}<option value="{{ p }}" {% if p == provider %}selected{% endif %}>{{ p }}</option>{% endfor %}
+  </select>
+  <select name="show">
+    <option value="todo" {% if show == 'todo' %}selected{% endif %}>Still to do</option>
+    <option value="all" {% if show == 'all' %}selected{% endif %}>Everyone</option>
+  </select>
+  <button type="submit">Filter</button>
+</form>
+
+{% if group in ('clear', 'unchecked') %}
+  {% if group == 'unchecked' %}<p class="muted">These patients have a visit but no medications in the export, so we can't say they're clear. Worth a quick look if you expected meds.</p>{% endif %}
+  {% if rows %}
+  <table class="results">
+    <thead><tr><th>Visit</th><th>Patient</th><th>Provider</th><th>When</th></tr></thead>
+    <tbody>{% for r in rows %}<tr><td class="nowrap">{{ r.appt_date }}</td><td>{{ r.patient_name }}<div class="muted small">ID {{ r.patient_id }}</div></td><td>{{ r.provider }}</td><td>{{ when(r.days_to_visit) }}</td></tr>{% endfor %}</tbody>
+  </table>
+  {% else %}<div class="card"><p class="muted">Nobody in this group.</p></div>{% endif %}
+{% else %}
+  {% if not rows %}<div class="card"><p>Nothing left to do here.</p></div>{% endif %}
+  {% for r in rows %}
+  <article class="patient" id="p{{ r.patient_hash[:12] }}">
+    <div class="patient-head">
+      <div><strong>{{ r.patient_name }}</strong> <span class="muted small">ID {{ r.patient_id }}{% if r.dob %} · DOB {{ r.dob }}{% endif %}</span>
+        <div class="small">{{ r.phone or 'No phone' }} · {{ r.email or 'No email' }}{% if r.do_not_email %} · <span class="tag warnt">Don't email</span>{% endif %}</div></div>
+      <div class="small">{{ r.appt_date }} · {{ when(r.days_to_visit) }}<div class="muted">{{ r.provider }}</div></div>
+    </div>
+    {% for i in r.issues %}
+    <div class="work-row {{ '' if i.work in ACTIVE else 'closed' }}">
+      <div><span class="tag {{ i.type }}">{{ 'Rx' if i.type == 'rx' else 'Lab' }}</span> {{ i.reason }}
+        {% if i.came_back %}<span class="tag back">Came back</span>{% endif %}
+        <div class="muted small">{{ i.action }}{% if i.prescriber_contact %} · {{ i.prescriber_contact }}{% endif %}{% if i.controlled %} · controlled{% endif %}</div></div>
+      {% if ctx.can('work') %}
+      <form method="post" action="/scans/{{ scan.id }}/work" class="btns">
+        {{ keep() }}
+        <input type="hidden" name="item" value="{{ i.work_hash }}">
+        {% if i.work == 'open' %}
+          <button name="status" value="waiting" type="submit">Waiting on reply</button>
+          <button name="status" value="done" type="submit">Done</button>
+          <button name="status" value="not_needed" type="submit">Not needed</button>
+        {% elif i.work == 'waiting' %}
+          <span class="tag st-waiting">Waiting on reply</span>
+          <button name="status" value="done" type="submit">Done</button>
+          <button name="status" value="open" type="submit">Reopen</button>
+        {% else %}
+          <span class="tag st-done">{{ STATUS[i.work] }}</span>
+          <button name="status" value="open" type="submit">Reopen</button>
+        {% endif %}
+      </form>
+      {% else %}<span class="tag st-{{ i.work }}">{{ STATUS[i.work] }}</span>{% endif %}
+    </div>
+    {% endfor %}
+    {% if ctx.can('work') %}
+    <details class="small">
+      <summary>Call notes{% if r.contact_log %} ({{ r.contact_log|length }}){% endif %}</summary>
+      <p class="muted">Script: {{ script(r) }}</p>
+      {% for l in r.contact_log %}<div>{{ l.date }} · {{ OUTCOMES[l.outcome] }} · {{ l.who }}{% if l.note %}: {{ l.note }}{% endif %}</div>{% endfor %}
+      <form method="post" action="/scans/{{ scan.id }}/contact" class="btns spaced-top">
+        {{ keep() }}
+        <input type="hidden" name="patient" value="{{ r.patient_hash }}">
+        <input name="note" placeholder="Note (optional)" maxlength="300">
+        {% for key, label in OUTCOMES.items() %}<button name="outcome" value="{{ key }}" type="submit">{{ label }}</button>{% endfor %}
+      </form>
+      <form method="post" action="/scans/{{ scan.id }}/optout" class="btns spaced-top">
+        {{ keep() }}
+        <input type="hidden" name="patient" value="{{ r.patient_hash }}">
+        <button name="value" value="{{ '0' if r.do_not_email else '1' }}" type="submit">{{ 'Allow emails again' if r.do_not_email else "Don't email this patient" }}</button>
+      </form>
+    </details>
+    {% endif %}
+  </article>
+  {% endfor %}
+{% endif %}
+{% endblock %}

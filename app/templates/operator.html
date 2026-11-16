@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Operator console{% endblock %}
+{% block content %}
+<h1>Operator console</h1>
+<p class="muted">You manage access only. Patient data stays inside each practice and isn't reachable from here.</p>
+
+<section class="card">
+  <h2>Waiting on you ({{ queue | length }})</h2>
+  {% if queue %}
+  <table>
+    <thead><tr><th>Sent</th><th>Practice</th><th>Request</th><th>Person</th><th>Note</th><th></th></tr></thead>
+    <tbody>
+    {% for r in queue %}
+    <tr>
+      <td class="nowrap">{{ r.created_at|lt(ctx.practice, '%b %d %H:%M') }}</td>
+      <td>{{ names.get(r.practice_id) }}</td>
+      <td>{{ {'add': 'Add', 'change_role': 'Change role', 'remove': 'Remove', 'reset_mfa': 'Reset two-step'}[r.kind] }}{% if r.role %} → {{ ROLE_LABELS[r.role] }}{% endif %}</td>
+      <td>{{ r.target_name }} {{ r.target_email }}</td>
+      <td class="small">{{ r.note }}</td>
+      <td><a class="button small" href="/operator/practices/{{ r.practice_id }}">Open</a></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="muted">No open requests.</p>{% endif %}
+</section>
+
+<section class="card">
+  <h2>Practices ({{ practices | length }})</h2>
+  <table>
+    <thead><tr><th>Practice</th><th>Access plan</th><th>BAA</th><th>Users</th><th>Open requests</th><th>Last scan</th><th></th></tr></thead>
+    <tbody>
+    {% for p in practices %}
+    <tr>
+      <td>{{ p.name }}</td>
+      <td>{% if p.iam_plan == 'managed' %}<span class="tag ok">Managed</span>{% else %}<span class="tag">Self-managed</span>{% endif %}</td>
+      <td>{% if p.baa_signed_at %}<span class="tag ok">Signed {{ p.baa_signed_at|lt(ctx.practice, '%b %d') }}</span>{% else %}<span class="tag warnt">Not signed</span>{% endif %}</td>
+      <td>{{ users.get(p.id, 0) }}</td>
+      <td>{{ open_reqs.get(p.id, 0) }}</td>
+      <td>{{ last_scan[p.id]|lt(ctx.practice, '%b %d %H:%M') if last_scan.get(p.id) else '—' }}</td>
+      <td><a href="/operator/practices/{{ p.id }}">Manage</a></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}{{ p.name }}{% endblock %}
+{% block content %}
+<p><a href="/operator">← All practices</a></p>
+<h1>{{ p.name }}</h1>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+{% if invite_link %}
+<div class="card notice">
+  <p><strong>Invite created for {{ invite_email }}.</strong> Send them this link. It works once and expires in 72 hours.</p>
+  <input class="copy" readonly value="{{ invite_link }}">
+</div>
+{% endif %}
+
+<div class="grid2">
+  <section class="card">
+    <h2>Access plan</h2>
+    <form method="post" action="/operator/practices/{{ p.id }}/plan">
+      <input type="hidden" name="csrf_token" value="{{ ctx.csrf }}">
+      {% for key, label in PLANS.items() %}
+      <label class="check"><input type="radio" name="iam_plan" value="{{ key }}" {% if p.iam_plan == key %}checked{% endif %}> {{ label }}</label>
+      {% endfor %}
+      <button type="submit">Save plan</button>
+    </form>
+  </section>
+  <section class="card">
+    <h2>Business associate agreement</h2>
+    {% if p.baa_signed_at %}
+      <p>Signed by <strong>{{ p.baa_signed_name }}</strong>, {{ p.baa_signed_title }}<br>
+      {{ p.baa_signed_at|lt(ctx.practice, '%b %d, %Y %H:%M') }} · version {{ p.baa_version }}<br>
+      <span class="muted small">text fingerprint {{ p.baa_text_sha256[:16] }}…</span></p>
+    {% else %}<p><span class="tag warnt">Not signed</span> They can't upload until the owner signs.</p>{% endif %}
+  </section>
+</div>
+
+<section class="card">
+  <h2>Requests</h2>
+  {% if reqs %}
+  <table>
+    <thead><tr><th>Sent</th><th>Request</th><th>Person</th><th>Note</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+    {% for r in reqs %}
+    <tr>
+      <td class="nowrap">{{ r.created_at|lt(ctx.practice, '%b %d %H:%M') }}</td>
+      <td>{{ {'add': 'Add', 'change_role': 'Change role', 'remove': 'Remove', 'reset_mfa': 'Reset two-step'}[r.kind] }}{% if r.role %} → {{ ROLE_LABELS[r.role] }}{% endif %}</td>
+      <td>{{ r.target_name }} {{ r.target_email }}</td>
+      <td class="small">{{ r.note }}</td>
+      <td><span class="tag st-{{ r.status }}">{{ {'open': 'Open', 'done': 'Done', 'declined': 'Declined'}[r.status] }}</span></td>
+      <td>
+        {% if r.status == 'open' %}
+        <form method="post" action="/operator/requests/{{ r.id }}" class="row">
+          <input type="hidden" name="csrf_token" value="{{ ctx.csrf }}">
+          <input name="reply" placeholder="Reply (optional)">
+          <button name="status" value="done" type="submit">Mark done</button>
+          <button name="status" value="declined" class="link danger" type="submit">Decline</button>
+        </form>
+        {% else %}<span class="small muted">{{ r.reply }}</span>{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <p class="muted small">Make the change in the user list below first, then mark the request done.</p>
+  {% else %}<p class="muted">No requests yet.</p>{% endif %}
+</section>
+
+<section class="card">
+  <h2>Users</h2>
+  <table>
+    <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Two-step</th><th>Last sign-in</th><th>Active</th><th></th></tr></thead>
+    <tbody>
+    {% for u in users %}
+    <tr>
+      <td>{{ u.name }}</td>
+      <td>{{ u.email }}</td>
+      <td>
+        <form method="post" action="/operator/practices/{{ p.id }}/users/{{ u.id }}/update" id="u{{ u.id }}">
+          <input type="hidden" name="csrf_token" value="{{ ctx.csrf }}">
+          {% if u.role == 'owner' %}<input type="hidden" name="role" value="owner">Owner
+          {% else %}<select name="role">{% for r in roles if r != 'owner' %}<option value="{{ r }}" {% if r == u.role %}selected{% endif %}>{{ ROLE_LABELS[r] }}</option>{% endfor %}</select>{% endif %}
+        </form>
+      </td>
+      <td>{% if u.mfa_enabled %}<span class="tag ok">On</span>{% else %}<span class="tag warnt">Off</span>{% endif %}</td>
+      <td>{{ u.last_login_at|lt(ctx.practice, '%b %d %H:%M') if u.last_login_at else ('Invited' if u.invite_token_hash else '—') }}</td>
+      <td>{% if u.role == 'owner' %}<input form="u{{ u.id }}" type="hidden" name="active" value="1">Yes
+          {% else %}<input form="u{{ u.id }}" type="checkbox" name="active" value="1" {% if u.active %}checked{% endif %}>{% endif %}</td>
+      <td class="nowrap">
+        <button form="u{{ u.id }}" type="submit">Save</button>
+        {% if u.mfa_enabled %}
+        <form method="post" action="/operator/practices/{{ p.id }}/users/{{ u.id }}/reset-mfa" class="inline">
+          <input type="hidden" name="csrf_token" value="{{ ctx.csrf }}">
+          <button class="link" type="submit">Reset two-step</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <h2 class="spaced">Add a user</h2>
+  <form method="post" action="/operator/practices/{{ p.id }}/invite" class="row">
+    <input type="hidden" name="csrf_token" value="{{ ctx.csrf }}">
+    <input name="name" placeholder="Name" required>
+    <input type="email" name="email" placeholder="Work email" required>
+    <select name="role"><option value="admin">Admin</option><option value="staff" selected>Staff</option><option value="readonly">Read-only</option></select>
+    <button class="primary" type="submit">Create invite</button>
+  </form>
+</section>
+{% endblock %}

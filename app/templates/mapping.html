@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Match columns{% endblock %}
+{% block content %}
+<h1>Match your columns</h1>
+<p class="muted">Tell us which column holds each item. We'll remember this for files with the same columns, so you only do it once.</p>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+<form method="post" action="/mapping/{{ ds.id }}">
+  <input type="hidden" name="csrf_token" value="{{ ctx.csrf }}">
+  {% for kind, info in pending.items() %}
+  <section class="card">
+    <h2>{{ KIND_LABELS[kind] }} <span class="muted small">({{ info.rows }} rows)</span></h2>
+    <table class="form-table">
+      {% for field, label, required in FIELDS[kind] %}
+      <tr>
+        <td>{{ label }}{% if required %} <span class="req">required</span>{% endif %}</td>
+        <td>
+          <select name="m.{{ kind }}.{{ field }}">
+            <option value="">(not in this file)</option>
+            {% for h in info.headers %}
+            <option value="{{ h }}" {% if info.mapping.get(field) == h %}selected{% endif %}>{{ h }}</option>
+            {% endfor %}
+          </select>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </section>
+  {% endfor %}
+  <button class="primary big" type="submit">Save &amp; scan</button>
+</form>
+{% endblock %}

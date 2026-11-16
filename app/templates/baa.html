@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Business associate agreement{% endblock %}
+{% block content %}
+<h1>Business associate agreement</h1>
+<p class="muted">HIPAA requires this agreement before Previsit can hold your patients' information.</p>
+{% set p = ctx.practice %}
+{% if p.baa_signed_at %}
+  <div class="card notice">✔ Signed by <strong>{{ p.baa_signed_name }}</strong>, {{ p.baa_signed_title }}, on {{ p.baa_signed_at|lt(ctx.practice, '%b %d, %Y %H:%M') }} (version {{ p.baa_version }}).</div>
+{% endif %}
+<section class="card">
+  <pre class="legal">{{ text }}</pre>
+</section>
+{% if not p.baa_signed_at %}
+  {% if ctx.user.role == 'owner' %}
+  <section class="card narrow-left">
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <form method="post" action="/baa">
+      <input type="hidden" name="csrf_token" value="{{ ctx.csrf }}">
+      <label>Your full legal name <input name="full_name" required autocomplete="name"></label>
+      <label>Your title <input name="title" placeholder="Practice Manager, Physician Owner…" required></label>
+      <label class="check"><input type="checkbox" name="agree" value="1" required> I agree to this agreement and I'm authorized to sign for {{ p.name }}.</label>
+      <button class="primary" type="submit">Sign</button>
+    </form>
+  </section>
+  {% else %}
+  <p class="notice">Your practice owner needs to sign this before anyone can upload.</p>
+  {% endif %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<h1>Pre-visit scan</h1>
+<p class="muted">Finds expired prescriptions and overdue lab work for visits in the next {{ ctx.practice.lookahead_days }} days.</p>
+
+{% if not ctx.practice.baa_signed_at %}
+<div class="banner warn">Before uploading, the practice owner needs to sign the business associate agreement. <a href="/baa">{{ 'Sign it now' if ctx.user.role == 'owner' else 'Read it' }}</a></div>
+{% endif %}
+{% if not ctx.practice.rules_reviewed_at %}
+<div class="banner warn">The scan rules haven't been signed off by a clinician yet. <a href="/rules">Review the rules</a></div>
+{% endif %}
+{% if stale %}
+<div class="banner warn">The newest export is {{ age }} days old, so today's worklist may be out of date. Upload fresh reports or check the office PC agent.</div>
+{% endif %}
+{% if stuck and ctx.can('upload') %}
+<div class="banner warn">An upload is waiting because its columns need matching. <a href="/mapping/{{ stuck.id }}">Match columns</a></div>
+{% endif %}
+
+<div class="stats">
+  <div class="hl"><span class="num">{{ totals.open }}</span>to do</div>
+  <div><span class="num">{{ totals.waiting }}</span>waiting on replies</div>
+  <div><span class="num">{{ totals.done + totals.not_needed }}</span>handled by staff</div>
+  <div class="ok"><span class="num">{{ totals.cleared }}</span>fixed in new data</div>
+</div>
+{% if scans %}<p><a class="button primary" href="/worklist">Open today's worklist</a></p>{% endif %}
+
+<div class="grid2">
+  {% if ctx.can('upload') %}
+  <section class="card">
+    <h2>Add this week's exports</h2>
+    <form method="post" action="/upload" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ ctx.csrf }}">
+      <label>Appointments (CSV) <span class="req">required</span><input type="file" name="appointments" accept=".csv,.tsv,.txt,text/csv" required></label>
+      <label>Medications (CSV)<input type="file" name="medications" accept=".csv,.tsv,.txt,text/csv"></label>
+      <label>Lab results (CSV)<input type="file" name="labs" accept=".csv,.tsv,.txt,text/csv"></label>
+      <label>Patient contact details (CSV) <span class="hint">only if phone and email are not in the appointments report</span><input type="file" name="patients" accept=".csv,.tsv,.txt,text/csv"></label>
+      <label class="check"><input type="checkbox" name="review" value="1"> Let me check how the columns were matched</label>
+      <button class="primary big" type="submit">Upload &amp; scan</button>
+    </form>
+    <p class="muted small">Files are encrypted as they're saved. Only the columns the scan needs are kept, and everything is deleted after {{ ctx.practice.retention_days }} days.
+    {% if ctx.can('manage_settings') %}<a href="/settings">Set up automatic uploads</a> so nobody has to do this.{% endif %}</p>
+  </section>
+  {% endif %}
+
+  <section class="card">
+    <h2>Latest data</h2>
+    {% if latest %}
+      <p>Uploaded {{ latest.created_at|lt(ctx.practice, '%b %d, %Y %H:%M') }} by {{ names.get(latest.uploaded_by, 'someone') }}</p>
+      <ul class="plain">
+        {% for kind in KINDS %}{% set c = latest_counts.get(kind) %}
+        {% if c %}<li>{{ KIND_LABELS[kind] }}: {{ c.rows }} rows{% if c.matched_by and c.matched_by not in ('saved', 'guessed') %} <span class="tag ok">{{ c.matched_by }}</span>{% endif %}
+          {% if c.skipped %}<span class="muted">({{ c.skipped }} skipped: missing or unreadable values)</span>{% endif %}
+          {% if c.cancelled_visit %}<span class="muted">({{ c.cancelled_visit }} cancelled visits left out)</span>{% endif %}
+          {% if c.discontinued %}<span class="muted">({{ c.discontinued }} discontinued left out)</span>{% endif %}</li>
+        {% else %}<li class="muted">{{ KIND_LABELS[kind] }}: not included</li>{% endif %}
+        {% endfor %}
+      </ul>
+      {% if ctx.can('scan') %}
+      <form method="post" action="/scan">
+        <input type="hidden" name="csrf_token" value="{{ ctx.csrf }}">
+        <input type="hidden" name="dataset_id" value="{{ latest.id }}">
+        <button class="big" type="submit">Scan again</button>
+      </form>
+      {% endif %}
+    {% else %}
+      <p class="muted">No data yet. Upload your exports to run the first scan.</p>
+    {% endif %}
+  </section>
+</div>
+
+<section class="card">
+  <h2>Recent scans</h2>
+  {% if scans %}
+  <table>
+    <thead><tr><th>When</th><th>Visits checked</th><th>Expired now</th><th>Before visit</th><th>Clear</th><th>By</th><th></th></tr></thead>
+    <tbody>
+    {% for s, sm in scans %}
+      <tr>
+        <td>{{ s.created_at|lt(ctx.practice, '%b %d, %H:%M') }}</td>
+        <td>{{ sm.patients_in_window }}</td>
+        <td><strong>{{ sm.expired }}</strong></td>
+        <td>{{ sm.expiring }}</td>
+        <td>{{ sm.clear }}</td>
+        <td>{{ names.get(s.run_by, '') }}</td>
+        <td><a href="/scans/{{ s.id }}">Open</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="muted">No scans yet.</p>{% endif %}
+</section>
+{% endblock %}

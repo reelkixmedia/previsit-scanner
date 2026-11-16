@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Fax sheet{% endblock %}
+{% block content %}
+<p class="noprint"><a href="/scans/{{ scan.id }}/offices">← Requests to offices</a> <button data-print type="button">Print</button></p>
+<script src="/static/print.js"></script>
+<div class="sheet">
+  <h1>{{ ctx.practice.name }}: requests before upcoming visits</h1>
+  <p><strong>To:</strong> {{ g.name }}{% if g.contact %} · {{ g.contact }}{% endif %}<br><strong>Date:</strong> {{ today }}</p>
+  {% if g.rx %}
+  <h2>Prescription renewals</h2>
+  <table>
+    <thead><tr><th>Patient</th><th>Date of birth</th><th>Medication</th><th>Last prescribed</th><th>Visit</th><th>Approved?</th></tr></thead>
+    <tbody>{% for x in g.rx %}<tr><td>{{ x.patient }}</td><td>{{ x.dob }}</td><td>{{ x.drug }}{% if x.controlled %}<br><em>Controlled: please e-prescribe</em>{% endif %}</td><td>{{ x.last_prescribed }}</td><td>{{ x.visit }}</td><td>☐ Yes ☐ No</td></tr>{% endfor %}</tbody>
+  </table>
+  {% endif %}
+  {% if g.labs %}
+  <h2>Lab orders to review</h2>
+  <table>
+    <thead><tr><th>Patient</th><th>Date of birth</th><th>Lab</th><th>Why</th><th>Visit</th><th>Ordered?</th></tr></thead>
+    <tbody>{% for x in g.labs %}<tr><td>{{ x.patient }}</td><td>{{ x.dob }}</td><td>{{ x.lab }}</td><td>{{ x.reason }}</td><td>{{ x.visit }}</td><td>☐ Yes ☐ No</td></tr>{% endfor %}</tbody>
+  </table>
+  {% endif %}
+  <p class="spaced-top">Signature: ____________________________ Date: ____________</p>
+  <p class="small">Confidential: contains protected health information intended only for the recipient. If you received this in error, notify {{ ctx.practice.name }} and destroy it.</p>
+</div>
+{% endblock %}

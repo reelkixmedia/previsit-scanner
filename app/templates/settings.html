@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+<h1>Practice settings</h1>
+{% set p = ctx.practice %}
+<form method="post" action="/settings">
+  <input type="hidden" name="csrf_token" value="{{ ctx.csrf }}">
+  <section class="card">
+    <h2>Practice</h2>
+    <label>Practice name <input name="name" value="{{ p.name }}" required></label>
+    <label>Look ahead <input class="num" type="number" name="lookahead_days" value="{{ p.lookahead_days }}" min="1" max="60"> days of appointments</label>
+    <label>Keep uploads and results for <input class="num" type="number" name="retention_days" value="{{ p.retention_days }}" min="1" max="365"> days, then delete them automatically</label>
+    <label class="check"><input type="checkbox" name="require_mfa" value="1" {% if p.require_mfa %}checked{% endif %}> Require two-step sign-in for everyone (recommended)</label>
+  </section>
+
+  <section class="card">
+    <h2>Automation</h2>
+    <label>Time zone
+      <select name="timezone">{% for tz in TIMEZONES %}<option value="{{ tz }}" {% if tz == p.timezone %}selected{% endif %}>{{ tz.split('/')[1].replace('_', ' ') }}</option>{% endfor %}</select>
+    </label>
+    <label class="check"><input type="checkbox" name="auto_scan" value="1" {% if p.auto_scan %}checked{% endif %}> Scan automatically every day at
+      <input class="num" type="number" name="auto_scan_hour" value="{{ p.auto_scan_hour }}" min="0" max="23"> o'clock (24-hour)</label>
+    <label class="check"><input type="checkbox" name="auto_send" value="1" {% if p.auto_send %}checked{% endif %}> Also send due patient reminders automatically</label>
+    <label>Patient reminder days before the visit <input name="reminder_days" value="{{ p.reminder_days }}"></label>
+    <p class="muted small">Each patient gets one email per stage, and only while something is still open. Patients you've reached by phone or marked "don't email" are skipped.</p>
+  </section>
+
+  <section class="card">
+    <h2>Sign-in options</h2>
+    <p class="muted small">Let staff sign in with their work Microsoft or Google account. The Previsit two-step code is still required after it.</p>
+    {% for key, prov in SSO.items() %}
+    <label class="check"><input type="checkbox" name="sso.{{ key }}" value="1" {% if key in p.sso_providers.split(',') %}checked{% endif %}>
+      Allow "Sign in with {{ prov.label }}"{% if key not in sso_ready %} <span class="muted small">(not switched on by Previsit yet)</span>{% endif %}</label>
+    {% endfor %}
+  </section>
+
+  <section class="card">
+    <h2>Patient email</h2>
+    <p class="muted small">Placeholders: {first_name} {provider} {appt_date} {todo_list} {practice_name}</p>
+    <label>Subject <input name="email_subject" value="{{ p.email_subject }}"></label>
+    <label>Body <textarea name="email_body" rows="10">{{ p.email_body }}</textarea></label>
+  </section>
+
+  <section class="card">
+    <h2>Your practice mailbox</h2>
+    <p class="muted small">Emails go out from your own Microsoft 365 or Google Workspace mailbox (covered by your BAA with them), using an encrypted connection. Stored passwords are encrypted.</p>
+    <div class="row">
+      <label>Mail server <input name="smtp_host" value="{{ p.smtp_host }}" placeholder="smtp.office365.com"></label>
+      <label>Port <input class="num" type="number" name="smtp_port" value="{{ p.smtp_port }}"></label>
+    </div>
+    <div class="row">
+      <label>Username <input name="smtp_user" value="{{ p.smtp_user }}" autocomplete="off"></label>
+      <label>Password <input type="password" name="smtp_password" placeholder="{{ 'saved, leave blank to keep' if p.smtp_password_enc else '' }}" autocomplete="new-password"></label>
+    </div>
+    <label>Send from <input name="smtp_from" value="{{ p.smtp_from }}" placeholder="frontdesk@yourpractice.com"></label>
+  </section>
+  <button class="primary" type="submit">Save settings</button>
+</form>
+
+<section class="card spaced-top">
+  <h2>Automatic upload from your office PC</h2>
+  <p class="muted small">Your practice software saves its reports to a folder each night and our small agent sends them here. No one has to upload anything. The key can only upload: it can't read anything.</p>
+  {% if new_key %}
+  <div class="notice"><strong>Copy this key now. It won't be shown again.</strong><input class="copy" readonly value="{{ new_key }}"></div>
+  {% elif p.api_key_hash %}<p>An upload key is set.</p>{% endif %}
+  <form method="post" action="/settings/upload-key">
+    <input type="hidden" name="csrf_token" value="{{ ctx.csrf }}">
+    <button type="submit">{{ 'Replace upload key' if p.api_key_hash else 'Create upload key' }}</button>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,14 @@
+fastapi==0.115.6
+uvicorn==0.32.1
+sqlalchemy==2.0.36
+jinja2==3.1.4
+argon2-cffi==23.1.0
+pyotp==2.9.0
+cryptography==44.0.0
+openpyxl==3.1.5
+python-multipart==0.0.20
+qrcode==8.0
+pytest==8.3.4
+httpx==0.28.1
+pyjwt[crypto]==2.10.1
+tzdata

@@ -1,0 +1,44 @@
+# Secrets / config
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+master.key
+upload.key
+
+# Runtime data (DB, audit log, generated demo logins)
+instance/
+instance_*/
+*.db
+*.sqlite
+*.sqlite3
+*.jsonl
+*.log
+demo_accounts*.txt
+outbox/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.pytest_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Real patient exports must never be committed
+real_data/
+exports/

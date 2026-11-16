@@ -1,0 +1,117 @@
+<!--
+  Wazuh rules for the Previsit audit log (instance/audit.jsonl). Copy to /var/ossec/etc/rules/ on the manager.
+  The built-in JSON decoder parses each line, so no custom decoder is needed.
+
+  Agent config (ossec.conf on the app server):
+    <localfile>
+      <log_format>json</log_format>
+      <location>/srv/previsit/instance/audit.jsonl</location>
+    </localfile>
+  Also add the app folder to <syscheck> so file integrity monitoring watches the code and config.
+-->
+<group name="previsit,">
+
+  <rule id="100500" level="0">
+    <decoded_as>json</decoded_as>
+    <field name="app">previsit</field>
+    <description>Previsit audit event: $(action)</description>
+  </rule>
+
+  <rule id="100501" level="5">
+    <if_sid>100500</if_sid>
+    <field name="action">^login_failed|^mfa_failed</field>
+    <description>Previsit: failed sign-in (user $(user_id), ip $(ip))</description>
+    <group>authentication_failed,hipaa_164.312.b,  <rule id="100508" level="7">
+    <if_sid>100500</if_sid>
+    <field name="action">^daily_run_failed$|^auto_send_held_stale_data$</field>
+    <description>Previsit: automation needs attention ($(action))</description>
+  </rule>
+
+</group>
+  </rule>
+
+  <rule id="100502" level="10" frequency="8" timeframe="300">
+    <if_matched_sid>100501</if_matched_sid>
+    <same_field>ip</same_field>
+    <description>Previsit: many failed sign-ins from one IP (possible password guessing)</description>
+    <group>authentication_failures,hipaa_164.312.b,  <rule id="100508" level="7">
+    <if_sid>100500</if_sid>
+    <field name="action">^daily_run_failed$|^auto_send_held_stale_data$</field>
+    <description>Previsit: automation needs attention ($(action))</description>
+  </rule>
+
+</group>
+  </rule>
+
+  <rule id="100503" level="8">
+    <if_sid>100500</if_sid>
+    <field name="action">^account_locked$</field>
+    <description>Previsit: account locked after repeated failures (user $(user_id))</description>
+    <group>hipaa_164.312.a.1,  <rule id="100508" level="7">
+    <if_sid>100500</if_sid>
+    <field name="action">^daily_run_failed$|^auto_send_held_stale_data$</field>
+    <description>Previsit: automation needs attention ($(action))</description>
+  </rule>
+
+</group>
+  </rule>
+
+  <rule id="100504" level="12">
+    <if_sid>100500</if_sid>
+    <field name="action">^emergency_access_reset$</field>
+    <description>Previsit: emergency access reset run on the server</description>
+    <group>hipaa_164.312.a.2.ii,  <rule id="100508" level="7">
+    <if_sid>100500</if_sid>
+    <field name="action">^daily_run_failed$|^auto_send_held_stale_data$</field>
+    <description>Previsit: automation needs attention ($(action))</description>
+  </rule>
+
+</group>
+  </rule>
+
+  <rule id="100505" level="6">
+    <if_sid>100500</if_sid>
+    <field name="action">^mfa_reset$|^user_updated$|^user_invited$|^settings_changed$</field>
+    <description>Previsit: access or settings change ($(action))</description>
+    <group>hipaa_164.312.a.1,  <rule id="100508" level="7">
+    <if_sid>100500</if_sid>
+    <field name="action">^daily_run_failed$|^auto_send_held_stale_data$</field>
+    <description>Previsit: automation needs attention ($(action))</description>
+  </rule>
+
+</group>
+  </rule>
+
+  <rule id="100506" level="3">
+    <if_sid>100500</if_sid>
+    <field name="action">^call_list_exported$|^audit_exported$|^patient_emails$</field>
+    <description>Previsit: patient data left the app ($(action))</description>
+    <group>hipaa_164.312.b,  <rule id="100508" level="7">
+    <if_sid>100500</if_sid>
+    <field name="action">^daily_run_failed$|^auto_send_held_stale_data$</field>
+    <description>Previsit: automation needs attention ($(action))</description>
+  </rule>
+
+</group>
+  </rule>
+
+  <rule id="100507" level="10" frequency="15" timeframe="600">
+    <if_matched_sid>100506</if_matched_sid>
+    <same_field>user_id</same_field>
+    <description>Previsit: unusually many exports by one user</description>
+    <group>hipaa_164.312.b,  <rule id="100508" level="7">
+    <if_sid>100500</if_sid>
+    <field name="action">^daily_run_failed$|^auto_send_held_stale_data$</field>
+    <description>Previsit: automation needs attention ($(action))</description>
+  </rule>
+
+</group>
+  </rule>
+
+  <rule id="100508" level="7">
+    <if_sid>100500</if_sid>
+    <field name="action">^daily_run_failed$|^auto_send_held_stale_data$</field>
+    <description>Previsit: automation needs attention ($(action))</description>
+  </rule>
+
+</group>

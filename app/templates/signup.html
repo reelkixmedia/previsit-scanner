@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Create your practice account{% endblock %}
+{% block content %}
+<div class="card narrow">
+  <h1>Create your practice account</h1>
+  <p class="muted">You'll be the owner. Next you'll set up two-step sign-in with an authenticator app.</p>
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <form method="post" action="/signup">
+    <input type="hidden" name="csrf_token" value="{{ pre_csrf }}">
+    <label>Practice name <input name="practice_name" value="{{ form.practice_name if form else '' }}" required></label>
+    <label>Your name <input name="name" value="{{ form.name if form else '' }}" required autocomplete="name"></label>
+    <label>Work email <input type="email" name="email" value="{{ form.email if form else '' }}" required autocomplete="username"></label>
+    <label>Password <span class="hint">at least 12 characters</span>
+      <input type="password" name="password" required minlength="12" autocomplete="new-password"></label>
+    <label>Password again <input type="password" name="password2" required minlength="12" autocomplete="new-password"></label>
+    <fieldset class="plans">
+      <legend>Who manages user access?</legend>
+      {% for key, label in PLANS.items() %}
+      <label class="check"><input type="radio" name="iam_plan" value="{{ key }}" {% if form and form.iam_plan == key %}checked{% endif %} required> {{ label }}</label>
+      {% endfor %}
+      <p class="muted small">You can switch later by contacting Previsit support.</p>
+    </fieldset>
+    <button class="primary" type="submit">Create account</button>
+  </form>
+  <p class="muted">Already have an account? <a href="/login">Sign in</a></p>
+</div>
+{% endblock %}

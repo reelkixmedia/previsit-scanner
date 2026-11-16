@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Results{% endblock %}
+{% block content %}
+<h1>Results, last 30 days</h1>
+<p class="muted">Actual counts from your own worklist. Email counts include test-mode runs.</p>
+<div class="stats">
+  <div><span class="num">{{ runs }}</span>scans ({{ automatic }} automatic)</div>
+  <div><span class="num">{{ peak }}</span>most charts checked in one scan</div>
+  <div class="ok"><span class="num">{{ totals.done + totals.cleared }}</span>items fixed</div>
+  <div class="hl"><span class="num">{{ totals.open + totals.waiting }}</span>still open</div>
+  <div><span class="num">{{ by_kind.get('patient', 0) }}</span>patient reminders</div>
+  <div><span class="num">{{ by_kind.get('office', 0) }}</span>office requests</div>
+</div>
+{% if latest %}
+<section class="card">
+  <h2>Latest scan</h2>
+  <ul class="plain">
+    <li>{{ latest.expired }} patients with something expired or overdue</li>
+    <li>{{ latest.expiring }} with something running out before the visit</li>
+    <li>{{ latest.clear }} all clear, needing no chart review</li>
+    <li>{{ latest.unchecked }} that couldn't be checked</li>
+  </ul>
+</section>
+{% endif %}
+{% endblock %}

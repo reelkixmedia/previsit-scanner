@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Scan rules{% endblock %}
+{% block content %}
+<h1>Scan rules</h1>
+{% set edit = ctx.can('manage_rules') %}
+
+<section class="card {% if not ctx.practice.rules_reviewed_at %}warn-border{% endif %}">
+  {% if ctx.practice.rules_reviewed_at %}
+    <p>✔ Reviewed by <strong>{{ ctx.practice.rules_reviewed_by }}</strong> on {{ ctx.practice.rules_reviewed_at|lt(ctx.practice, '%b %d, %Y') }}. Any change clears this sign-off.</p>
+  {% else %}
+    <p><strong>These are starter defaults, not medical advice.</strong> A clinician at your practice should check them against your state's rules and your own protocols, then sign off here.</p>
+    {% if edit %}
+    <form method="post" action="/rules/reviewed" class="inline">
+      <input type="hidden" name="csrf_token" value="{{ ctx.csrf }}">
+      <input name="reviewer" placeholder="Clinician name, e.g. Dr. Patel" required>
+      <button type="submit">Mark as reviewed</button>
+    </form>
+    {% endif %}
+  {% endif %}
+</section>
+
+<section class="card">
+  <h2>How long a prescription stays valid</h2>
+  <p class="muted small">Counted from the date last prescribed. A prescription is flagged if it expires before the visit. It's also flagged when no refills are left.</p>
+  <form method="post" action="/rules/rx">
+    <input type="hidden" name="csrf_token" value="{{ ctx.csrf }}">
+    <table class="form-table">
+      {% for cat in RX_CATEGORIES %}
+      <tr><td>{{ RX_LABELS[cat] }}</td>
+        <td><input type="number" name="days.{{ cat }}" value="{{ rx[cat].max_days }}" min="1" max="730" {% if not edit %}disabled{% endif %}> days</td></tr>
+      {% endfor %}
+    </table>
+    {% if edit %}<button type="submit">Save</button>{% endif %}
+  </form>
+</section>
+
+<section class="card">
+  <h2>Lab work tied to medications</h2>
+  <p class="muted small">If a patient takes any listed medication, the lab must be done within the set number of days before the visit. Separate names with commas. Matching ignores capital letters.</p>
+  {% if edit %}
+    {% for r in labs %}
+    <form method="post" action="/rules/lab" id="lab{{ r.id }}">
+      <input type="hidden" name="csrf_token" value="{{ ctx.csrf }}">
+      <input type="hidden" name="rule_id" value="{{ r.id }}">
+    </form>
+    <form method="post" action="/rules/lab/{{ r.id }}/delete" id="del{{ r.id }}">
+      <input type="hidden" name="csrf_token" value="{{ ctx.csrf }}">
+    </form>
+    {% endfor %}
+    <form method="post" action="/rules/lab" id="labnew"><input type="hidden" name="csrf_token" value="{{ ctx.csrf }}"></form>
+  {% endif %}
+  <table class="rules">
+    <thead><tr><th>Lab (shown to patients)</th><th>Medications that need it</th><th>Lab test names in your export</th><th>Every</th><th>On</th>{% if edit %}<th></th>{% endif %}</tr></thead>
+    <tbody>
+    {% for r in labs %}
+      <tr>
+        <td><input form="lab{{ r.id }}" name="name" value="{{ r.name }}" {% if not edit %}disabled{% endif %}></td>
+        <td><textarea form="lab{{ r.id }}" name="drug_keywords" rows="3" {% if not edit %}disabled{% endif %}>{{ r.drug_keywords }}</textarea></td>
+        <td><textarea form="lab{{ r.id }}" name="lab_keywords" rows="3" {% if not edit %}disabled{% endif %}>{{ r.lab_keywords }}</textarea></td>
+        <td class="nowrap"><input form="lab{{ r.id }}" class="num" type="number" name="max_age_days" value="{{ r.max_age_days }}" min="1" max="1095" {% if not edit %}disabled{% endif %}> days</td>
+        <td><input form="lab{{ r.id }}" type="checkbox" name="active" value="1" {% if r.active %}checked{% endif %} {% if not edit %}disabled{% endif %}></td>
+        {% if edit %}
+        <td class="nowrap">
+          <button form="lab{{ r.id }}" type="submit">Save</button>
+          <button form="del{{ r.id }}" class="link danger" type="submit">Delete</button>
+        </td>
+        {% endif %}
+      </tr>
+    {% endfor %}
+    {% if edit %}
+      <tr class="new">
+        <td><input form="labnew" name="name" placeholder="New lab, e.g. CBC" required></td>
+        <td><textarea form="labnew" name="drug_keywords" rows="3" placeholder="methotrexate, clozapine" required></textarea></td>
+        <td><textarea form="labnew" name="lab_keywords" rows="3" placeholder="cbc, complete blood count" required></textarea></td>
+        <td class="nowrap"><input form="labnew" class="num" type="number" name="max_age_days" value="90" min="1" max="1095"> days</td>
+        <td></td>
+        <td><button form="labnew" type="submit">Add</button></td>
+      </tr>
+    {% endif %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
